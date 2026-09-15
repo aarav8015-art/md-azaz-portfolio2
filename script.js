@@ -1,41 +1,46 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
 
     const stage = document.getElementById("photoStage");
     const image = document.getElementById("profileImage");
 
-    if (!stage || !image) {
-        console.log("Portrait elements not found");
-        return;
+    if (!stage || !image) return;
+
+    let targetRotateX = 0;
+    let targetRotateY = 0;
+    let targetMoveX = 0;
+    let targetMoveY = 0;
+
+    let rotateX = 0;
+    let rotateY = 0;
+    let moveX = 0;
+    let moveY = 0;
+
+    /* Smooth animation loop */
+    function animate() {
+
+        rotateX += (targetRotateX - rotateX) * 0.07;
+        rotateY += (targetRotateY - rotateY) * 0.07;
+
+        moveX += (targetMoveX - moveX) * 0.07;
+        moveY += (targetMoveY - moveY) * 0.07;
+
+        image.style.transform = `
+            translate3d(${moveX}px, ${moveY}px, 0)
+            perspective(1000px)
+            rotateX(${rotateX}deg)
+            rotateY(${rotateY}deg)
+            scale(1.035)
+        `;
+
+        requestAnimationFrame(animate);
     }
 
-    let targetX = 0;
-    let targetY = 0;
-    let currentX = 0;
-    let currentY = 0;
-
-    function animatePortrait() {
-
-        currentX += (targetX - currentX) * 0.08;
-        currentY += (targetY - currentY) * 0.08;
-
-        image.style.transform =
-            "translate3d(" +
-            currentX +
-            "px, " +
-            currentY +
-            "px, 0) scale(1.04)";
-
-        requestAnimationFrame(animatePortrait);
-    }
-
-    animatePortrait();
+    animate();
 
 
-    /* =========================
-       MOUSE / DESKTOP
-    ========================= */
+    /* Desktop mouse interaction */
 
-    stage.addEventListener("mousemove", function (event) {
+    stage.addEventListener("mousemove", (event) => {
 
         const rect = stage.getBoundingClientRect();
 
@@ -45,27 +50,32 @@ document.addEventListener("DOMContentLoaded", function () {
         const y =
             (event.clientY - rect.top) / rect.height - 0.5;
 
-        targetX = x * 28;
-        targetY = y * 18;
+        targetRotateY = x * 7;
+        targetRotateX = -y * 5;
+
+        targetMoveX = x * 12;
+        targetMoveY = y * 8;
 
     });
 
 
-    stage.addEventListener("mouseleave", function () {
+    /* Smooth return when mouse leaves */
 
-        targetX = 0;
-        targetY = 0;
+    stage.addEventListener("mouseleave", () => {
+
+        targetRotateX = 0;
+        targetRotateY = 0;
+        targetMoveX = 0;
+        targetMoveY = 0;
 
     });
 
 
-    /* =========================
-       TOUCH / MOBILE
-    ========================= */
+    /* Mobile touch interaction */
 
     stage.addEventListener(
         "touchmove",
-        function (event) {
+        (event) => {
 
             const touch = event.touches[0];
             const rect = stage.getBoundingClientRect();
@@ -76,54 +86,51 @@ document.addEventListener("DOMContentLoaded", function () {
             const y =
                 (touch.clientY - rect.top) / rect.height - 0.5;
 
-            targetX = x * 28;
-            targetY = y * 18;
+            targetRotateY = x * 6;
+            targetRotateX = -y * 4;
+
+            targetMoveX = x * 10;
+            targetMoveY = y * 6;
 
         },
         { passive: true }
     );
 
 
-    stage.addEventListener("touchend", function () {
+    stage.addEventListener("touchend", () => {
 
-        targetX = 0;
-        targetY = 0;
+        targetRotateX = 0;
+        targetRotateY = 0;
+        targetMoveX = 0;
+        targetMoveY = 0;
 
     });
 
 
-    /* =========================
-       SCROLL REVEAL
-    ========================= */
+    /* Scroll reveal */
 
-    const sections =
-        document.querySelectorAll(
-            ".content-section, .contact-section"
-        );
+    const sections = document.querySelectorAll(
+        ".content-section, .contact-section"
+    );
 
-    const observer =
-        new IntersectionObserver(
-            function (entries) {
+    const observer = new IntersectionObserver(
+        (entries) => {
 
-                entries.forEach(function (entry) {
+            entries.forEach((entry) => {
 
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("visible");
-                    }
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("visible");
+                }
 
-                });
+            });
 
-            },
-            {
-                threshold: 0.12
-            }
-        );
+        },
+        { threshold: 0.12 }
+    );
 
-    sections.forEach(function (section) {
-
+    sections.forEach((section) => {
         section.classList.add("reveal");
         observer.observe(section);
-
     });
 
 });

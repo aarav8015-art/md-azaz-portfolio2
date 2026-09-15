@@ -5,156 +5,90 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!stage || !image) return;
 
-    let dragging = false;
-    let startX = 0;
-    let startPosition = 50;
-    let currentPosition = 50;
-    let targetPosition = 50;
+    let targetX = 0;
+    let targetY = 0;
 
-    let lastX = 0;
-    let velocity = 0;
+    let currentX = 0;
+    let currentY = 0;
 
-    function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
+    function animate() {
+
+        currentX += (targetX - currentX) * 0.08;
+        currentY += (targetY - currentY) * 0.08;
+
+        image.style.transform = `
+            translate3d(${currentX}px, ${currentY}px, 0)
+            scale(1.035)
+        `;
+
+        requestAnimationFrame(animate);
     }
 
-    function updateImage() {
-
-        currentPosition +=
-            (targetPosition - currentPosition) * 0.12;
-
-        image.style.objectPosition =
-            `${currentPosition}% 48%`;
-
-        requestAnimationFrame(updateImage);
-    }
-
-    updateImage();
+    animate();
 
 
     /* =========================
-       MOUSE
+       MOUSE MOVEMENT
     ========================= */
 
-    stage.addEventListener("pointerdown", (event) => {
+    stage.addEventListener("mousemove", (event) => {
 
-        dragging = true;
+        const rect = stage.getBoundingClientRect();
 
-        startX = event.clientX;
-        lastX = event.clientX;
+        const x =
+            (event.clientX - rect.left) / rect.width - 0.5;
 
-        startPosition = currentPosition;
+        const y =
+            (event.clientY - rect.top) / rect.height - 0.5;
 
-        stage.setPointerCapture(event.pointerId);
-
-        stage.style.cursor = "grabbing";
-
-        image.style.transition = "none";
+        targetX = x * 18;
+        targetY = y * 10;
     });
-
-
-    stage.addEventListener("pointermove", (event) => {
-
-        if (!dragging) return;
-
-        const movement = event.clientX - startX;
-
-        const sensitivity = 0.12;
-
-        targetPosition =
-            clamp(
-                startPosition - movement * sensitivity,
-                0,
-                100
-            );
-
-        velocity = event.clientX - lastX;
-
-        lastX = event.clientX;
-    });
-
-
-    function stopDragging() {
-
-        if (!dragging) return;
-
-        dragging = false;
-
-        stage.style.cursor = "grab";
-
-        image.style.transition =
-            "transform 0.45s ease-out";
-
-        /* Small momentum after release */
-
-        targetPosition =
-            clamp(
-                targetPosition - velocity * 0.8,
-                0,
-                100
-            );
-    }
-
-
-    stage.addEventListener("pointerup", stopDragging);
-    stage.addEventListener("pointercancel", stopDragging);
-    stage.addEventListener("lostpointercapture", stopDragging);
 
 
     /* =========================
-       TOUCH / MOBILE
+       MOUSE LEAVES PORTRAIT
     ========================= */
 
-    stage.addEventListener(
-        "touchstart",
-        (event) => {
+    stage.addEventListener("mouseleave", () => {
 
-            startX = event.touches[0].clientX;
-            startPosition = currentPosition;
+        targetX = 0;
+        targetY = 0;
 
-            dragging = true;
-        },
-        { passive: true }
-    );
+    });
 
+
+    /* =========================
+       TOUCH MOVEMENT
+    ========================= */
 
     stage.addEventListener(
         "touchmove",
         (event) => {
 
-            if (!dragging) return;
+            const touch = event.touches[0];
+            const rect = stage.getBoundingClientRect();
 
-            const x = event.touches[0].clientX;
+            const x =
+                (touch.clientX - rect.left) / rect.width - 0.5;
 
-            const movement = x - startX;
+            const y =
+                (touch.clientY - rect.top) / rect.height - 0.5;
 
-            targetPosition =
-                clamp(
-                    startPosition - movement * 0.12,
-                    0,
-                    100
-                );
-        },
-        { passive: true }
-    );
-
-
-    stage.addEventListener(
-        "touchend",
-        () => {
-
-            dragging = false;
+            targetX = x * 18;
+            targetY = y * 10;
 
         },
         { passive: true }
     );
 
 
-    /* =========================
-       MOUSE CURSOR
-    ========================= */
+    stage.addEventListener("touchend", () => {
 
-    stage.style.cursor = "grab";
+        targetX = 0;
+        targetY = 0;
+
+    });
 
 
     /* =========================
@@ -173,11 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 entries.forEach((entry) => {
 
                     if (entry.isIntersecting) {
-
-                        entry.target.classList.add(
-                            "visible"
-                        );
-
+                        entry.target.classList.add("visible");
                     }
 
                 });
@@ -188,11 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         );
 
-
     revealElements.forEach((element) => {
 
         element.classList.add("reveal");
-
         observer.observe(element);
 
     });

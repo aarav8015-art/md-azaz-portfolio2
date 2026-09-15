@@ -1,111 +1,41 @@
-console.log("AZAZ PORTFOLIO JS LOADED");
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
     const stage = document.getElementById("photoStage");
     const image = document.getElementById("profileImage");
 
-    if (!stage || !image) return;
+    if (!stage || !image) {
+        console.log("Portrait elements not found");
+        return;
+    }
 
     let targetX = 0;
     let targetY = 0;
-
     let currentX = 0;
     let currentY = 0;
 
-    function animate() {
+    function animatePortrait() {
 
         currentX += (targetX - currentX) * 0.08;
         currentY += (targetY - currentY) * 0.08;
 
-        image.style.transform = `
-            translate3d(${currentX}px, ${currentY}px, 0)
-            scale(1.035)
-        `;
+        image.style.transform =
+            "translate3d(" +
+            currentX +
+            "px, " +
+            currentY +
+            "px, 0) scale(1.04)";
 
-        requestAnimationFrame(animate);
+        requestAnimationFrame(animatePortrait);
     }
 
-    animate();
+    animatePortrait();
 
 
     /* =========================
-       MOUSE MOVEMENT
+       MOUSE / DESKTOP
     ========================= */
 
-    document.addEventListener("DOMContentLoaded", () => {
-
-    const stage = document.getElementById("photoStage");
-    const image = document.getElementById("profileImage");
-
-    if (!stage || !image) return;
-
-    let mouseX = 0;
-    let mouseY = 0;
-    let currentX = 0;
-    let currentY = 0;
-
-    function animate() {
-
-        currentX += (mouseX - currentX) * 0.08;
-        currentY += (mouseY - currentY) * 0.08;
-
-        image.style.transform =
-            `translate(${currentX}px, ${currentY}px) scale(1.04)`;
-
-        requestAnimationFrame(animate);
-    }
-
-    stage.addEventListener("mousemove", (e) => {
-
-        const rect = stage.getBoundingClientRect();
-
-        mouseX =
-            ((e.clientX - rect.left) / rect.width - 0.5) * 30;
-
-        mouseY =
-            ((e.clientY - rect.top) / rect.height - 0.5) * 20;
-
-    });
-
-    stage.addEventListener("mouseleave", () => {
-
-        mouseX = 0;
-        mouseY = 0;
-
-    });
-
-    animate();
-
-
-    /* Scroll reveal */
-
-    const elements = document.querySelectorAll(
-        ".content-section, .contact-section"
-    );
-
-    const observer = new IntersectionObserver(
-        (entries) => {
-
-            entries.forEach((entry) => {
-
-                if (entry.isIntersecting) {
-                    entry.target.classList.add("visible");
-                }
-
-            });
-
-        },
-        { threshold: 0.12 }
-    );
-
-    elements.forEach((element) => {
-
-        element.classList.add("reveal");
-        observer.observe(element);
-
-    });
-
-});
+    stage.addEventListener("mousemove", function (event) {
 
         const rect = stage.getBoundingClientRect();
 
@@ -115,16 +45,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const y =
             (event.clientY - rect.top) / rect.height - 0.5;
 
-        targetX = x * 18;
-        targetY = y * 10;
+        targetX = x * 28;
+        targetY = y * 18;
+
     });
 
 
-    /* =========================
-       MOUSE LEAVES PORTRAIT
-    ========================= */
-
-    stage.addEventListener("mouseleave", () => {
+    stage.addEventListener("mouseleave", function () {
 
         targetX = 0;
         targetY = 0;
@@ -133,12 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================
-       TOUCH MOVEMENT
+       TOUCH / MOBILE
     ========================= */
 
     stage.addEventListener(
         "touchmove",
-        (event) => {
+        function (event) {
 
             const touch = event.touches[0];
             const rect = stage.getBoundingClientRect();
@@ -149,15 +76,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const y =
                 (touch.clientY - rect.top) / rect.height - 0.5;
 
-            targetX = x * 18;
-            targetY = y * 10;
+            targetX = x * 28;
+            targetY = y * 18;
 
         },
         { passive: true }
     );
 
 
-    stage.addEventListener("touchend", () => {
+    stage.addEventListener("touchend", function () {
 
         targetX = 0;
         targetY = 0;
@@ -169,16 +96,16 @@ document.addEventListener("DOMContentLoaded", () => {
        SCROLL REVEAL
     ========================= */
 
-    const revealElements =
+    const sections =
         document.querySelectorAll(
             ".content-section, .contact-section"
         );
 
     const observer =
         new IntersectionObserver(
-            (entries) => {
+            function (entries) {
 
-                entries.forEach((entry) => {
+                entries.forEach(function (entry) {
 
                     if (entry.isIntersecting) {
                         entry.target.classList.add("visible");
@@ -192,13 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         );
 
-    revealElements.forEach((element) => {
+    sections.forEach(function (section) {
 
-        element.classList.add("reveal");
-        observer.observe(element);
+        section.classList.add("reveal");
+        observer.observe(section);
 
     });
 
 });
-
-

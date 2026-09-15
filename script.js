@@ -1,3 +1,4 @@
+console.log("AZAZ PORTFOLIO JS LOADED");
 document.addEventListener("DOMContentLoaded", () => {
 
     const stage = document.getElementById("photoStage");

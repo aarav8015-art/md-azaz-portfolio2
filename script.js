@@ -1,210 +1,334 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    /* =========================
+       ELEMENTS
+    ========================= */
+
     const body = document.body;
-    const stage = document.getElementById("photoStage");
-    const image = document.getElementById("profileImage");
     const header = document.querySelector(".site-header");
-    const progress = document.querySelector(".scroll-line span");
-    const navLinks = document.querySelectorAll(".nav-menu a");
-    const sections = document.querySelectorAll("section[id]");
+    const scrollLine = document.querySelector(".scroll-line span");
 
-    /* cursor */
-    const dot = document.querySelector(".cursor-dot");
-    const ring = document.querySelector(".cursor-ring");
+    const cursorDot = document.querySelector(".cursor-dot");
+    const cursorRing = document.querySelector(".cursor-ring");
 
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let ringX = mouseX;
-    let ringY = mouseY;
+    const photoStage = document.querySelector("#photoStage");
+    const profileImage = document.querySelector("#profileImage");
 
-    window.addEventListener("mousemove", (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+    /* =========================
+       PAGE LOAD
+    ========================= */
 
-        if (dot) {
-            dot.style.left = `${mouseX}px`;
-            dot.style.top = `${mouseY}px`;
-        }
-    }, { passive: true });
+    window.setTimeout(() => {
+        body.classList.remove("loading");
 
-    function cursorLoop() {
-        ringX += (mouseX - ringX) * 0.13;
-        ringY += (mouseY - ringY) * 0.13;
+        document.querySelectorAll(".reveal-up").forEach((el, index) => {
+            setTimeout(() => {
+                el.classList.add("visible");
+            }, 150 + index * 80);
+        });
+    }, 500);
 
-        if (ring) {
-            ring.style.left = `${ringX}px`;
-            ring.style.top = `${ringY}px`;
-        }
+    /* =========================
+       CUSTOM CURSOR
+    ========================= */
 
-        requestAnimationFrame(cursorLoop);
-    }
+    if (cursorDot && cursorRing && window.matchMedia("(pointer: fine)").matches) {
 
-    cursorLoop();
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
 
-    document.querySelectorAll("a, .skill-card, .experience-item, .education-item")
-        .forEach(el => {
-            el.addEventListener("mouseenter", () => body.classList.add("cursor-hover"));
-            el.addEventListener("mouseleave", () => body.classList.remove("cursor-hover"));
+        let ringX = mouseX;
+        let ringY = mouseY;
+
+        document.addEventListener("mousemove", (event) => {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+
+            cursorDot.style.left = `${mouseX}px`;
+            cursorDot.style.top = `${mouseY}px`;
         });
 
-    /* header + scroll progress */
-    function onScroll() {
+        function animateCursor() {
+            ringX += (mouseX - ringX) * 0.12;
+            ringY += (mouseY - ringY) * 0.12;
+
+            cursorRing.style.left = `${ringX}px`;
+            cursorRing.style.top = `${ringY}px`;
+
+            requestAnimationFrame(animateCursor);
+        }
+
+        animateCursor();
+
+        document.querySelectorAll("a, .skill-card, .experience-item").forEach((element) => {
+
+            element.addEventListener("mouseenter", () => {
+                cursorRing.classList.add("active");
+            });
+
+            element.addEventListener("mouseleave", () => {
+                cursorRing.classList.remove("active");
+            });
+
+        });
+    }
+
+    /* =========================
+       SCROLL PROGRESS
+    ========================= */
+
+    function updateScroll() {
+
         const scrollTop = window.scrollY;
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = max > 0 ? (scrollTop / max) * 100 : 0;
+        const documentHeight =
+            document.documentElement.scrollHeight - window.innerHeight;
 
-        if (progress) progress.style.width = `${pct}%`;
-        if (header) header.classList.toggle("scrolled", scrollTop > 45);
-    }
+        const progress =
+            documentHeight > 0
+                ? (scrollTop / documentHeight) * 100
+                : 0;
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    /* portrait parallax */
-    if (stage && image) {
-        let targetRX = 0;
-        let targetRY = 0;
-        let targetX = 0;
-        let targetY = 0;
-
-        let currentRX = 0;
-        let currentRY = 0;
-        let currentX = 0;
-        let currentY = 0;
-
-        function portraitLoop() {
-            currentRX += (targetRX - currentRX) * 0.06;
-            currentRY += (targetRY - currentRY) * 0.06;
-            currentX += (targetX - currentX) * 0.06;
-            currentY += (targetY - currentY) * 0.06;
-
-            image.style.transform = `
-                translate3d(${currentX}px, ${currentY}px, 0)
-                rotateX(${currentRX}deg)
-                rotateY(${currentRY}deg)
-                scale(1.035)
-            `;
-
-            requestAnimationFrame(portraitLoop);
+        if (scrollLine) {
+            scrollLine.style.height = `${progress}%`;
         }
 
-        portraitLoop();
-
-        stage.addEventListener("mousemove", (e) => {
-            const r = stage.getBoundingClientRect();
-
-            const x = (e.clientX - r.left) / r.width - 0.5;
-            const y = (e.clientY - r.top) / r.height - 0.5;
-
-            targetRY = x * 5;
-            targetRX = -y * 3.5;
-            targetX = x * 14;
-            targetY = y * 8;
-        });
-
-        stage.addEventListener("mouseleave", () => {
-            targetRX = 0;
-            targetRY = 0;
-            targetX = 0;
-            targetY = 0;
-        });
-
-        stage.addEventListener("touchmove", (e) => {
-            const touch = e.touches[0];
-            const r = stage.getBoundingClientRect();
-
-            const x = (touch.clientX - r.left) / r.width - 0.5;
-            const y = (touch.clientY - r.top) / r.height - 0.5;
-
-            targetRY = x * 4;
-            targetRX = -y * 3;
-            targetX = x * 10;
-            targetY = y * 6;
-        }, { passive: true });
-
-        stage.addEventListener("touchend", () => {
-            targetRX = 0;
-            targetRY = 0;
-            targetX = 0;
-            targetY = 0;
-        });
+        if (header) {
+            if (scrollTop > 40) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        }
     }
 
-    /* scroll reveal */
-    const revealItems = document.querySelectorAll(".reveal");
+    window.addEventListener("scroll", updateScroll, { passive: true });
+    updateScroll();
 
-    const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("visible");
-            }
-        });
-    }, {
-        threshold: 0.12
+    /* =========================
+       SCROLL REVEALS
+    ========================= */
+
+    const revealElements = document.querySelectorAll(".reveal");
+
+    const revealObserver = new IntersectionObserver(
+        (entries) => {
+
+            entries.forEach((entry) => {
+
+                if (entry.isIntersecting) {
+
+                    entry.target.classList.add("visible");
+
+                    revealObserver.unobserve(entry.target);
+                }
+
+            });
+
+        },
+        {
+            threshold: 0.12,
+            rootMargin: "0px 0px -50px 0px"
+        }
+    );
+
+    revealElements.forEach((element) => {
+        revealObserver.observe(element);
     });
 
-    revealItems.forEach(item => revealObserver.observe(item));
+    /* =========================
+       ACTIVE NAVIGATION
+    ========================= */
 
-    /* stagger cards */
-    document.querySelectorAll(".skills-grid, .education-list, .experience-list")
-        .forEach(group => {
-            [...group.children].forEach((item, i) => {
-                item.style.transitionDelay = `${i * 70}ms`;
-            });
-        });
+    const sections = document.querySelectorAll("main section[id]");
+    const navLinks = document.querySelectorAll(".nav-menu a");
 
-    /* active navigation */
-    const navObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
+    const sectionObserver = new IntersectionObserver(
+        (entries) => {
 
-            const id = entry.target.id;
+            entries.forEach((entry) => {
 
-            navLinks.forEach(link => {
-                link.classList.toggle(
-                    "active",
-                    link.getAttribute("href") === `#${id}`
+                if (!entry.isIntersecting) return;
+
+                navLinks.forEach((link) => {
+                    link.classList.remove("active");
+                });
+
+                const activeLink = document.querySelector(
+                    `.nav-menu a[href="#${entry.target.id}"]`
                 );
+
+                if (activeLink) {
+                    activeLink.classList.add("active");
+                }
+
             });
-        });
-    }, {
-        rootMargin: "-40% 0px -50% 0px"
+
+        },
+        {
+            threshold: 0.25
+        }
+    );
+
+    sections.forEach((section) => {
+        sectionObserver.observe(section);
     });
 
-    sections.forEach(section => navObserver.observe(section));
+    /* =========================
+       SMOOTH ANCHOR LINKS
+    ========================= */
 
-    /* magnetic buttons */
-    document.querySelectorAll(".magnetic").forEach(button => {
-        button.addEventListener("mousemove", (e) => {
-            const r = button.getBoundingClientRect();
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
 
-            const x = e.clientX - r.left - r.width / 2;
-            const y = e.clientY - r.top - r.height / 2;
+        link.addEventListener("click", (event) => {
 
-            button.style.transform =
-                `translate(${x * 0.12}px, ${y * 0.12}px)`;
-        });
+            const targetId = link.getAttribute("href");
 
-        button.addEventListener("mouseleave", () => {
-            button.style.transform = "";
-        });
-    });
+            if (!targetId || targetId === "#") return;
 
-    /* smooth anchors */
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
-        link.addEventListener("click", e => {
-            const id = link.getAttribute("href");
-            const target = document.querySelector(id);
+            const target = document.querySelector(targetId);
 
             if (!target) return;
 
-            e.preventDefault();
+            event.preventDefault();
 
-            const offset = header ? header.offsetHeight : 0;
-
-            window.scrollTo({
-                top: target.getBoundingClientRect().top + window.scrollY - offset,
-                behavior: "smooth"
+            target.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
             });
+
         });
+
     });
+
+    /* =========================
+       HERO PORTRAIT PARALLAX
+    ========================= */
+
+    if (
+        photoStage &&
+        profileImage &&
+        window.matchMedia("(pointer: fine)").matches
+    ) {
+
+        let targetX = 0;
+        let targetY = 0;
+
+        let currentX = 0;
+        let currentY = 0;
+
+        photoStage.addEventListener("mousemove", (event) => {
+
+            const rect = photoStage.getBoundingClientRect();
+
+            const x =
+                (event.clientX - rect.left) /
+                rect.width -
+                0.5;
+
+            const y =
+                (event.clientY - rect.top) /
+                rect.height -
+                0.5;
+
+            targetX = x * 18;
+            targetY = y * 12;
+
+        });
+
+        photoStage.addEventListener("mouseleave", () => {
+
+            targetX = 0;
+            targetY = 0;
+
+        });
+
+        function animatePortrait() {
+
+            currentX += (targetX - currentX) * 0.08;
+            currentY += (targetY - currentY) * 0.08;
+
+            profileImage.style.setProperty(
+                "--photo-x",
+                `${currentX}px`
+            );
+
+            profileImage.style.setProperty(
+                "--photo-y",
+                `${currentY}px`
+            );
+
+            requestAnimationFrame(animatePortrait);
+        }
+
+        animatePortrait();
+    }
+
+    /* =========================
+       MAGNETIC BUTTONS
+    ========================= */
+
+    if (window.matchMedia("(pointer: fine)").matches) {
+
+        document.querySelectorAll(".magnetic").forEach((button) => {
+
+            button.addEventListener("mousemove", (event) => {
+
+                const rect = button.getBoundingClientRect();
+
+                const x =
+                    event.clientX -
+                    rect.left -
+                    rect.width / 2;
+
+                const y =
+                    event.clientY -
+                    rect.top -
+                    rect.height / 2;
+
+                button.style.transform =
+                    `translate(${x * 0.15}px, ${y * 0.15}px)`;
+
+            });
+
+            button.addEventListener("mouseleave", () => {
+
+                button.style.transform = "translate(0, 0)";
+
+            });
+
+        });
+    }
+
+    /* =========================
+       EXPERIENCE HOVER
+    ========================= */
+
+    document.querySelectorAll(".experience-item").forEach((item) => {
+
+        item.addEventListener("mouseenter", () => {
+            item.style.setProperty("--hover-x", "8px");
+        });
+
+        item.addEventListener("mouseleave", () => {
+            item.style.setProperty("--hover-x", "0px");
+        });
+
+    });
+
+    /* =========================
+       KEYBOARD ESCAPE
+    ========================= */
+
+    document.addEventListener("keydown", (event) => {
+
+        if (event.key === "Escape") {
+
+            document.querySelectorAll(".cursor-ring").forEach((ring) => {
+                ring.classList.remove("active");
+            });
+
+        }
+
+    });
+
 });

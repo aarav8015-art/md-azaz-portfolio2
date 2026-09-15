@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   const body = document.body;
   const header = document.querySelector(".site-header");
+document.addEventListener("DOMContentLoaded", () => {
+  const body = document.body;
+  const header = document.querySelector(".site-header");
   const progress = document.querySelector(".scroll-line span");
   const dot = document.querySelector(".cursor-dot");
   const ring = document.querySelector(".cursor-ring");

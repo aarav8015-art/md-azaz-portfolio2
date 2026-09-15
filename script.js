@@ -1,256 +1,200 @@
-/* ============================================
-   MD AZAZ PORTFOLIO
-   INTERACTIVE HERO IMAGE
-   Mouse + Touch Drag
-   ============================================ */
+document.addEventListener("DOMContentLoaded", () => {
 
-const photoStage = document.getElementById("photoStage");
-const profileImage = document.getElementById("profileImage");
+    const stage = document.getElementById("photoStage");
+    const image = document.getElementById("profileImage");
 
-let isDragging = false;
+    if (!stage || !image) return;
 
-let startX = 0;
-let currentRotation = 0;
-let targetRotation = 0;
+    let dragging = false;
+    let startX = 0;
+    let startPosition = 50;
+    let currentPosition = 50;
+    let targetPosition = 50;
 
-let velocity = 0;
-let lastX = 0;
+    let lastX = 0;
+    let velocity = 0;
 
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
 
-/* ============================================
-   MOUSE
-   ============================================ */
+    function updateImage() {
 
-photoStage.addEventListener("mousedown", (event) => {
+        currentPosition +=
+            (targetPosition - currentPosition) * 0.12;
 
-    isDragging = true;
+        image.style.objectPosition =
+            `${currentPosition}% 48%`;
 
-    startX = event.clientX;
-    lastX = event.clientX;
+        requestAnimationFrame(updateImage);
+    }
 
-    velocity = 0;
-
-    photoStage.style.cursor = "grabbing";
-
-});
+    updateImage();
 
 
-window.addEventListener("mousemove", (event) => {
+    /* =========================
+       MOUSE
+    ========================= */
 
-    if (!isDragging) return;
+    stage.addEventListener("pointerdown", (event) => {
 
-    const x = event.clientX;
+        dragging = true;
 
-    const movement = x - lastX;
+        startX = event.clientX;
+        lastX = event.clientX;
 
-    targetRotation += movement * 0.45;
+        startPosition = currentPosition;
 
-    velocity = movement * 0.45;
+        stage.setPointerCapture(event.pointerId);
 
-    lastX = x;
+        stage.style.cursor = "grabbing";
 
-});
-
-
-window.addEventListener("mouseup", () => {
-
-    if (!isDragging) return;
-
-    isDragging = false;
-
-    photoStage.style.cursor = "grab";
-
-});
+        image.style.transition = "none";
+    });
 
 
-/* ============================================
-   TOUCH
-   ============================================ */
+    stage.addEventListener("pointermove", (event) => {
 
-photoStage.addEventListener(
-    "touchstart",
-    (event) => {
+        if (!dragging) return;
 
-        isDragging = true;
+        const movement = event.clientX - startX;
 
-        startX = event.touches[0].clientX;
+        const sensitivity = 0.12;
 
-        lastX = startX;
+        targetPosition =
+            clamp(
+                startPosition - movement * sensitivity,
+                0,
+                100
+            );
 
-        velocity = 0;
+        velocity = event.clientX - lastX;
 
-    },
-    { passive: true }
-);
-
-
-photoStage.addEventListener(
-    "touchmove",
-    (event) => {
-
-        if (!isDragging) return;
-
-        const x = event.touches[0].clientX;
-
-        const movement = x - lastX;
-
-        targetRotation += movement * 0.5;
-
-        velocity = movement * 0.5;
-
-        lastX = x;
-
-    },
-    { passive: true }
-);
+        lastX = event.clientX;
+    });
 
 
-photoStage.addEventListener(
-    "touchend",
-    () => {
+    function stopDragging() {
 
-        isDragging = false;
+        if (!dragging) return;
 
-    },
-    { passive: true }
-);
+        dragging = false;
 
+        stage.style.cursor = "grab";
 
-/* ============================================
-   ANIMATION LOOP
-   ============================================ */
+        image.style.transition =
+            "transform 0.45s ease-out";
 
-function animate() {
+        /* Small momentum after release */
 
-    /*
-       Add momentum after releasing mouse/finger.
-    */
-
-    if (!isDragging) {
-
-        targetRotation += velocity;
-
-        velocity *= 0.92;
-
+        targetPosition =
+            clamp(
+                targetPosition - velocity * 0.8,
+                0,
+                100
+            );
     }
 
 
-    /*
-       Smoothly catch up to the target rotation.
-    */
-
-    currentRotation +=
-        (targetRotation - currentRotation) * 0.12;
+    stage.addEventListener("pointerup", stopDragging);
+    stage.addEventListener("pointercancel", stopDragging);
+    stage.addEventListener("lostpointercapture", stopDragging);
 
 
-    /*
-       Keep the rotation within reasonable limits.
-    */
+    /* =========================
+       TOUCH / MOBILE
+    ========================= */
 
-    targetRotation = Math.max(
-        -55,
-        Math.min(55, targetRotation)
+    stage.addEventListener(
+        "touchstart",
+        (event) => {
+
+            startX = event.touches[0].clientX;
+            startPosition = currentPosition;
+
+            dragging = true;
+        },
+        { passive: true }
     );
 
 
-    /*
-       Apply 3D rotation.
-    */
+    stage.addEventListener(
+        "touchmove",
+        (event) => {
 
-    profileImage.style.transform =
-        `perspective(1000px)
-         rotateY(${currentRotation}deg)
-         rotateX(${Math.sin(currentRotation * 0.03) * 2}deg)
-         scale(${1 + Math.abs(currentRotation) * 0.0015})`;
+            if (!dragging) return;
 
+            const x = event.touches[0].clientX;
 
-    /*
-       Add subtle movement to the stage.
-    */
+            const movement = x - startX;
 
-    photoStage.style.transform =
-        `translateZ(0px)`;
-
-
-    requestAnimationFrame(animate);
-
-}
-
-animate();
+            targetPosition =
+                clamp(
+                    startPosition - movement * 0.12,
+                    0,
+                    100
+                );
+        },
+        { passive: true }
+    );
 
 
-/* ============================================
-   SCROLL REVEAL
-   ============================================ */
+    stage.addEventListener(
+        "touchend",
+        () => {
 
-const sections =
-    document.querySelectorAll(".section");
-
-
-const observer =
-    new IntersectionObserver(
-        (entries) => {
-
-            entries.forEach((entry) => {
-
-                if (entry.isIntersecting) {
-
-                    entry.target.classList.add(
-                        "visible"
-                    );
-
-                }
-
-            });
+            dragging = false;
 
         },
-        {
-            threshold: 0.15
-        }
+        { passive: true }
     );
 
 
-sections.forEach((section) => {
+    /* =========================
+       MOUSE CURSOR
+    ========================= */
 
-    observer.observe(section);
+    stage.style.cursor = "grab";
+
+
+    /* =========================
+       SCROLL REVEAL
+    ========================= */
+
+    const revealElements =
+        document.querySelectorAll(
+            ".content-section, .contact-section"
+        );
+
+    const observer =
+        new IntersectionObserver(
+            (entries) => {
+
+                entries.forEach((entry) => {
+
+                    if (entry.isIntersecting) {
+
+                        entry.target.classList.add(
+                            "visible"
+                        );
+
+                    }
+
+                });
+
+            },
+            {
+                threshold: 0.12
+            }
+        );
+
+
+    revealElements.forEach((element) => {
+
+        element.classList.add("reveal");
+
+        observer.observe(element);
+
+    });
 
 });
-
-
-/* ============================================
-   HIDE DRAG HINT AFTER FIRST INTERACTION
-   ============================================ */
-
-const dragHint =
-    document.querySelector(".drag-hint");
-
-let interacted = false;
-
-
-function hideHint() {
-
-    if (interacted) return;
-
-    interacted = true;
-
-    if (dragHint) {
-
-        dragHint.style.opacity = "0";
-
-        dragHint.style.transition =
-            "opacity 0.5s ease";
-
-    }
-
-}
-
-
-photoStage.addEventListener(
-    "mousedown",
-    hideHint
-);
-
-photoStage.addEventListener(
-    "touchstart",
-    hideHint
-);

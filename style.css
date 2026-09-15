@@ -839,3 +839,52 @@ footer {
 .hero-visual:hover .profile-image {
     animation-play-state: paused;
 }
+/* Cinematic portrait motion */
+.portrait-frame {
+    perspective: 1000px;
+    overflow: hidden;
+}
+
+.profile-image {
+    transform-origin: center center;
+    animation: portraitBreathing 5s ease-in-out infinite;
+    will-change: transform;
+}
+
+@keyframes portraitBreathing {
+    0%, 100% {
+        transform: scale(1) rotateY(0deg);
+    }
+
+    50% {
+        transform: scale(1.025) rotateY(1.5deg);
+    }
+}
+
+.portrait-frame::after {
+    content: "";
+    position: absolute;
+    top: -20%;
+    left: -60%;
+    width: 35%;
+    height: 140%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 40, 40, 0.18),
+        transparent
+    );
+    transform: skewX(-18deg);
+    animation: redLightSweep 6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes redLightSweep {
+    0%, 65% {
+        left: -60%;
+    }
+
+    100% {
+        left: 140%;
+    }
+}
